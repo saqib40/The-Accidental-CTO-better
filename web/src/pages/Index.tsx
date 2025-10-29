@@ -1,14 +1,58 @@
-import { useState, useEffect } from "react";
-import { BookSidebar } from "@/components/BookSidebar";
+import { useState, useEffect, useMemo } from "react";
+import { BookSidebar, Chapter } from "@/components/BookSidebar"; // Make sure to export 'Chapter' from BookSidebar
 import { BookContent } from "@/components/BookContent";
-import { useMarkdownContent } from "@/hooks/useMarkdownContent";
-import { Loader2, ArrowUp } from "lucide-react";
+import { ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const BOOK_URL = "/test.md"; 
+// --- MODIFICATION: Import the markdown file as a raw string ---
+import bookMarkdown from "@/assets/test.md?raw";
+// --- END MODIFICATION ---
+
+// Helper function to create URL-friendly IDs
+const createId = (title: string) => {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/g, "")
+    .trim()
+    .replace(/\s+/g, "-");
+};
 
 const Index = () => {
-  const { content, chapters, loading, error } = useMarkdownContent(BOOK_URL);
+  // --- MODIFICATION: Remove useMarkdownContent, use useMemo ---
+  const { content, chapters } = useMemo(() => {
+    const lines = bookMarkdown.split("\n");
+    const chapters: Chapter[] = [];
+
+    lines.forEach((line) => {
+      let match;
+      if ((match = line.match(/^# (.*)/))) {
+        // H1
+        chapters.push({
+          id: createId(match[1]),
+          title: match[1],
+          level: 1,
+        });
+      } else if ((match = line.match(/^## (.*)/))) {
+        // H2
+        chapters.push({
+          id: createId(match[1]),
+          title: match[1],
+          level: 2,
+        });
+      } else if ((match = line.match(/^### (.*)/))) {
+        // H3
+        chapters.push({
+          id: createId(match[1]),
+          title: match[1],
+          level: 3,
+        });
+      }
+    });
+
+    return { content: bookMarkdown, chapters };
+  }, []); // Empty dependency array, runs only once
+  // --- END MODIFICATION ---
+
   const [activeChapter, setActiveChapter] = useState("");
   const [showScrollTop, setShowScrollTop] = useState(false);
 
@@ -16,14 +60,23 @@ const Index = () => {
     const headings = document.querySelectorAll(
       ".prose h1, .prose h2, .prose h3",
     );
+    
+    // Manually assign IDs to headings because markdown-to-jsx doesn't
+    // do it in a way that matches our generated chapter IDs.
+    headings.forEach((heading, index) => {
+      if (chapters[index]) {
+        heading.id = chapters[index].id;
+      }
+    });
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            const index = Array.from(headings).indexOf(entry.target);
-            if (index !== -1 && chapters[index]) {
-              setActiveChapter(chapters[index].id);
+            // Find the corresponding chapter by the ID we just assigned
+            const chapter = chapters.find(c => c.id === entry.target.id);
+            if (chapter) {
+              setActiveChapter(chapter.id);
             }
           }
         });
@@ -33,7 +86,7 @@ const Index = () => {
 
     headings.forEach((heading) => observer.observe(heading));
     return () => observer.disconnect();
-  }, [content, chapters]);
+  }, [content, chapters]); // 'content' is now just the static string
 
   useEffect(() => {
     const handleScroll = () => {
@@ -48,37 +101,14 @@ const Index = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
-          <p className="text-muted-foreground">The Accidental CTO</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="text-center space-y-4 max-w-md">
-          <h1 className="text-2xl font-bold text-destructive">Error Loading Book</h1>
-          <p className="text-muted-foreground">{error}</p>
-        </div>
-      </div>
-    );
-  }
-
+  // --- MODIFICATION: Removed loading and error states ---
   return (
     <div className="flex max-h-screen overflow-y-scroll px-4  overflow-x-hidden max-w-[100vw]">
-      {/* --- MODIFICATION HERE --- */}
       <BookSidebar 
         chapters={chapters} 
         activeChapter={activeChapter} 
-        onChapterClick={setActiveChapter} // <-- NEW PROP
+        onChapterClick={setActiveChapter}
       />
-      {/* --- END MODIFICATION --- */}
       <main className="top-20">
         <BookContent content={content} />
       </main>
@@ -95,6 +125,7 @@ const Index = () => {
       )}
     </div>
   );
+  // --- END MODIFICATION ---
 };
 
 export default Index;

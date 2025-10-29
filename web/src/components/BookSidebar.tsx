@@ -11,11 +11,13 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-interface Chapter {
+// --- MODIFICATION: Export this interface ---
+export interface Chapter {
   id: string;
   title: string;
   level: number;
 }
+// --- END MODIFICATION ---
 
 interface NestedChapter {
   id: string;
@@ -24,25 +26,22 @@ interface NestedChapter {
   subChapters: Chapter[];
 }
 
-// --- MODIFICATION HERE ---
 interface BookSidebarProps {
   chapters: Chapter[];
   activeChapter: string;
-  onChapterClick: (id: string) => void; // <-- 1. ADD THE PROP TO THE INTERFACE
+  onChapterClick: (id: string) => void; 
 }
-// --- END MODIFICATION ---
 
-// --- MODIFICATION HERE (SubChapterLink) ---
 const SubChapterLink = ({
   chapter,
   activeChapter,
   onCloseMobile,
-  onChapterClick, // <-- 2. ACCEPT THE PROP
+  onChapterClick, 
 }: {
   chapter: Chapter;
   activeChapter: string;
   onCloseMobile: () => void;
-  onChapterClick: (id: string) => void; // <-- 2. ACCEPT THE PROP
+  onChapterClick: (id: string) => void;
 }) => (
   <a
     key={chapter.id}
@@ -60,18 +59,17 @@ const SubChapterLink = ({
       e.preventDefault();
       document.getElementById(chapter.id)?.scrollIntoView({ behavior: "smooth" });
       onCloseMobile();
-      onChapterClick(chapter.id); // <-- 3. USE THE PROP ON CLICK
+      onChapterClick(chapter.id); 
     }}
   >
     {chapter.title}
   </a>
 );
-// --- END MODIFICATION ---
 
 export const BookSidebar = ({ 
   chapters, 
   activeChapter, 
-  onChapterClick // <-- 4. DESTRUCTURE THE PROP
+  onChapterClick 
 }: BookSidebarProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openChapter, setOpenChapter] = useState<string>("");
@@ -122,7 +120,6 @@ export const BookSidebar = ({
   const SidebarContent = () => (
     <div className="flex flex-col h-screen bg-background border-r border-sidebar-border">
       <div className="p-6 border-b border-sidebar-border">
-        {/* ... (no changes in this header part) ... */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div>
@@ -167,7 +164,6 @@ export const BookSidebar = ({
         >
           {nestedChapters.map((chapter) => (
             <AccordionItem value={chapter.id} key={chapter.id} className="border-b-0">
-              {/* --- MODIFICATION HERE (AccordionTrigger) --- */}
               <AccordionTrigger
                 className={cn(
                   "w-full text-left px-4 py-3 rounded-lg transition-all duration-200",
@@ -179,15 +175,13 @@ export const BookSidebar = ({
                 onClick={() => {
                   document.getElementById(chapter.id)?.scrollIntoView({ behavior: "smooth" });
                   setMobileOpen(false); 
-                  onChapterClick(chapter.id); // <-- 5. USE THE PROP ON CLICK
+                  onChapterClick(chapter.id);
                 }}
               >
                 <span className="text-sm leading-relaxed font-semibold text-base flex-1 text-left">
                   {chapter.title}
                 </span>
               </AccordionTrigger>
-              {/* --- END MODIFICATION --- */}
-              
               <AccordionContent className="pt-1 pb-2 space-y-1">
                 {chapter.subChapters.map((subChapter) => (
                   <SubChapterLink
@@ -195,7 +189,7 @@ export const BookSidebar = ({
                     chapter={subChapter}
                     activeChapter={activeChapter}
                     onCloseMobile={() => setMobileOpen(false)}
-                    onChapterClick={onChapterClick} // <-- 6. PASS PROP DOWN
+                    onChapterClick={onChapterClick} 
                   />
                 ))}
               </AccordionContent>
@@ -208,7 +202,6 @@ export const BookSidebar = ({
 
   return (
     <>
-      {/* ... (no changes in this mobile wrapper part) ... */}
       <Button
         variant="ghost"
         size="icon"

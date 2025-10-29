@@ -5,8 +5,7 @@ import { useMarkdownContent } from "@/hooks/useMarkdownContent";
 import { Loader2, ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-// This is the URL of the book that will be displayed in the sidebar and content area
-const BOOK_URL = "/test.md"
+const BOOK_URL = "/test.md"; 
 
 const Index = () => {
   const { content, chapters, loading, error } = useMarkdownContent(BOOK_URL);
@@ -14,9 +13,10 @@ const Index = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   useEffect(() => {
-    // Observe headings for active chapter tracking
-    const headings = document.querySelectorAll(".prose h1, .prose h2, .prose h3");
-    
+    const headings = document.querySelectorAll(
+      ".prose h1, .prose h2, .prose h3",
+    );
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -28,7 +28,7 @@ const Index = () => {
           }
         });
       },
-      { rootMargin: "-20% 0px -70% 0px" }
+      { rootMargin: "-20% 0px -70% 0px" },
     );
 
     headings.forEach((heading) => observer.observe(heading));
@@ -36,7 +36,6 @@ const Index = () => {
   }, [content, chapters]);
 
   useEffect(() => {
-    // Show scroll to top button when user scrolls down
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 400);
     };
@@ -73,14 +72,17 @@ const Index = () => {
 
   return (
     <div className="flex max-h-screen overflow-y-scroll px-4  overflow-x-hidden max-w-[100vw]">
-      <BookSidebar
-        chapters={chapters}
-        activeChapter={activeChapter}
+      {/* --- MODIFICATION HERE --- */}
+      <BookSidebar 
+        chapters={chapters} 
+        activeChapter={activeChapter} 
+        onChapterClick={setActiveChapter} // <-- NEW PROP
       />
+      {/* --- END MODIFICATION --- */}
       <main className="top-20">
         <BookContent content={content} />
       </main>
-      
+
       {showScrollTop && (
         <Button
           onClick={scrollToTop}
